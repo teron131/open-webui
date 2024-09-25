@@ -7,6 +7,9 @@ from typing import Literal, Optional, overload
 
 import aiohttp
 import requests
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, StreamingResponse
 from open_webui.apps.webui.models.models import Models
 from open_webui.config import (
     AIOHTTP_CLIENT_TIMEOUT,
@@ -21,19 +24,13 @@ from open_webui.config import (
 )
 from open_webui.constants import ERROR_MESSAGES
 from open_webui.env import SRC_LOG_LEVELS
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel
-from starlette.background import BackgroundTask
-
-
 from open_webui.utils.payload import (
     apply_model_params_to_body_openai,
     apply_model_system_prompt_to_body,
 )
-
 from open_webui.utils.utils import get_admin_user, get_verified_user
+from pydantic import BaseModel
+from starlette.background import BackgroundTask
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["OPENAI"])
@@ -171,9 +168,7 @@ async def speech(request: Request, user=Depends(get_verified_user)):
                 except Exception:
                     error_detail = f"External: {e}"
 
-            raise HTTPException(
-                status_code=r.status_code if r else 500, detail=error_detail
-            )
+            raise HTTPException(status_code=r.status_code if r else 500, detail=error_detail)
 
     except ValueError:
         raise HTTPException(status_code=401, detail=ERROR_MESSAGES.OPENAI_NOT_FOUND)
@@ -218,8 +213,7 @@ def merge_models_lists(model_lists):
                         "urlIdx": idx,
                     }
                     for model in models
-                    if "api.openai.com"
-                    not in app.state.config.OPENAI_API_BASE_URLS[idx]
+                    if "api.openai.com" not in app.state.config.OPENAI_API_BASE_URLS[idx]
                     or not any(
                         name in model["id"]
                         for name in [
@@ -260,10 +254,7 @@ async def get_all_models_raw() -> list:
         else:
             app.state.config.OPENAI_API_KEYS += [""] * (num_urls - num_keys)
 
-    tasks = [
-        fetch_url(f"{url}/models", app.state.config.OPENAI_API_KEYS[idx])
-        for idx, url in enumerate(app.state.config.OPENAI_API_BASE_URLS)
-    ]
+    tasks = [fetch_url(f"{url}/models", app.state.config.OPENAI_API_KEYS[idx]) for idx, url in enumerate(app.state.config.OPENAI_API_BASE_URLS)]
 
     responses = await asyncio.gather(*tasks)
     log.debug(f"get_all_models:responses() {responses}")
@@ -309,7 +300,7 @@ async def get_models(url_idx: Optional[int] = None, user=Depends(get_verified_us
     if url_idx is None:
         models = await get_all_models()
         if app.state.config.ENABLE_MODEL_FILTER:
-            if user.role == "user":
+            if user.role in ["user", "admin"]:
                 models["data"] = list(
                     filter(
                         lambda model: model["id"] in app.state.config.MODEL_FILTER_LIST,
@@ -436,9 +427,7 @@ async def generate_chat_completion(
     response = None
 
     try:
-        session = aiohttp.ClientSession(
-            trust_env=True, timeout=aiohttp.ClientTimeout(total=AIOHTTP_CLIENT_TIMEOUT)
-        )
+        session = aiohttp.ClientSession(trust_env=True, timeout=aiohttp.ClientTimeout(total=AIOHTTP_CLIENT_TIMEOUT))
         r = await session.request(
             method="POST",
             url=f"{url}/chat/completions",
@@ -453,9 +442,7 @@ async def generate_chat_completion(
                 r.content,
                 status_code=r.status,
                 headers=dict(r.headers),
-                background=BackgroundTask(
-                    cleanup_response, response=r, session=session
-                ),
+                background=BackgroundTask(cleanup_response, response=r, session=session),
             )
         else:
             try:
@@ -520,9 +507,7 @@ async def proxy(path: str, request: Request, user=Depends(get_verified_user)):
                 r.content,
                 status_code=r.status,
                 headers=dict(r.headers),
-                background=BackgroundTask(
-                    cleanup_response, response=r, session=session
-                ),
+                background=BackgroundTask(cleanup_response, response=r, session=session),
             )
         else:
             response_data = await r.json()
