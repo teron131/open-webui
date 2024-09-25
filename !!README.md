@@ -1,8 +1,15 @@
+# Specialized changes:
+
+- Update env example
+- Use Google OAuth only
+- Connect to pipelines by default
+- Admin also utilizes model filter
+
 # TLDR:
 
 For one terminal:
 
-``` bash
+```bash
 conda activate open-webui-env &&
 cd backend &&
 bash start.sh
@@ -10,7 +17,7 @@ bash start.sh
 
 WAIT TILL the first terminal finish, for another terminal:
 
-``` bash
+```bash
 conda activate open-webui-env &&
 cd pipelines &&
 bash start.sh
@@ -27,12 +34,10 @@ You can do a script but keep it simple here.
 4. Connections
 
 5. Add in OpenAI API:
-    
-    - API Base URL:http://localhost:9999
-    
-    - API Key: 0p3n-w3bu!
-    
-    - Save
+
+   - API Base URL:http://localhost:9999
+   - API Key: 0p3n-w3bu!
+   - Save
 
 6. Pipelines
 
@@ -46,7 +51,7 @@ https://docs.openwebui.com/getting-started/#install-from-open-webui-github-repo
 
 Already ran:
 
-``` bash
+```bash
 git clone https://github.com/open-webui/open-webui.git
 cd open-webui/
 
@@ -75,7 +80,7 @@ Customize using the pipelines mechanism.
 
 https://docs.openwebui.com/pipelines/
 
-``` bash
+```bash
 # Clone the Pipelines repository:
 
 git clone https://github.com/open-webui/pipelines.git
