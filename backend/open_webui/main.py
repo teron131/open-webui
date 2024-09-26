@@ -88,6 +88,7 @@ from open_webui.config import (
     WEBUI_NAME,
     AppConfig,
     run_migrations,
+    reset_config,
 )
 from open_webui.constants import ERROR_MESSAGES, TASKS, WEBHOOK_MESSAGES
 from open_webui.env import (
@@ -101,6 +102,7 @@ from open_webui.env import (
     WEBUI_SESSION_COOKIE_SAME_SITE,
     WEBUI_SESSION_COOKIE_SECURE,
     WEBUI_URL,
+    RESET_CONFIG_ON_START,
 )
 from open_webui.utils.misc import (
     add_or_update_system_message,
@@ -179,6 +181,9 @@ https://github.com/open-webui/open-webui
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     run_migrations()
+
+    if RESET_CONFIG_ON_START:
+        reset_config()
 
     asyncio.create_task(periodic_usage_pool_cleanup())
     yield
