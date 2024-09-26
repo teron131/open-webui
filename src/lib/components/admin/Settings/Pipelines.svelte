@@ -1,26 +1,24 @@
 <script lang="ts">
-	import { v4 as uuidv4 } from 'uuid';
-
-	import { toast } from 'svelte-sonner';
-	import { models } from '$lib/stores';
-	import { getContext, onMount, tick } from 'svelte';
-	import type { Writable } from 'svelte/store';
-	import type { i18n as i18nType } from 'i18next';
 	import {
+		deletePipeline,
+		downloadPipeline,
+		getModels,
+		getPipelines,
+		getPipelinesList,
 		getPipelineValves,
 		getPipelineValvesSpec,
 		updatePipelineValves,
-		getPipelines,
-		getModels,
-		getPipelinesList,
-		downloadPipeline,
-		deletePipeline,
 		uploadPipeline
 	} from '$lib/apis';
+	import { models } from '$lib/stores';
+	import type { i18n as i18nType } from 'i18next';
+	import { getContext, onMount, tick } from 'svelte';
+	import { toast } from 'svelte-sonner';
+	import type { Writable } from 'svelte/store';
 
+	import SensitiveInput from '$lib/components/common/SensitiveInput.svelte';
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import Switch from '$lib/components/common/Switch.svelte';
-
 	const i18n: Writable<i18nType> = getContext('i18n');
 
 	export let saveHandler: Function;
@@ -501,6 +499,13 @@
 																		<Switch bind:state={valves[property]} />
 																	</div>
 																</div>
+															{:else if property.toLowerCase().includes('api') || property
+																	.toLowerCase()
+																	.includes('key')}
+																<SensitiveInput
+																	placeholder={valves_spec.properties[property].title}
+																	bind:value={valves[property]}
+																/>
 															{:else}
 																<input
 																	class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-none"
