@@ -10,17 +10,13 @@
 For one terminal:
 
 ```bash
-conda activate open-webui-env &&
-cd backend &&
-bash start.sh
+conda activate open-webui-env && cd backend && bash start.sh
 ```
 
 WAIT TILL the first terminal finish, for another terminal:
 
 ```bash
-conda activate open-webui-env &&
-cd pipelines &&
-bash start.sh
+conda activate open-webui-env && cd pipelines && bash start.sh
 ```
 
 You can do a script but keep it simple here.
