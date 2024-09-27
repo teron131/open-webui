@@ -4,6 +4,9 @@
 - Use Google OAuth only
 - Connect to pipelines by default
 - Admin also utilizes model filter
+- Mask API keys as sensitive in pipelines in admin setting
+- Bot Builder API
+- LLM translate with formatter and configs
 
 # TLDR:
 
