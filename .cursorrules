@@ -29,6 +29,7 @@ Types of Pipelines:
    - Purpose: Create a "Model" with custom logic and processing
    - Behavior: Shows up as a singular model in the OpenWebUI interface
    - Main Component:
+     - Their id are their filenames by default, which will be useful for filtering by env var.
      - Pipe Function: Encapsulates all primary logic for the Pipe
 
 3. Manifolds:
