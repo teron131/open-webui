@@ -1,0 +1,46 @@
+This is a web app of chatbot.
+
+Project Structure:
+
+1. Main directory: Core of the application
+2. `pipelines` directory: Serves as the plugin
+3. `pipelines/pipelines` folder: Contains customization files
+
+Development Guidelines:
+
+- Avoid editing the core
+- Only read core files for referencing, except `.env` and `.env.example`
+
+Types of Pipelines:
+
+1. Filters:
+
+   - Purpose: Perform actions on incoming user messages and outgoing assistant messages
+   - Process:
+     a. Incoming user message (inlet) is passed to the filter
+     b. Filter processes the message before LLM chat completion
+     c. Filter post-processes outgoing LLM message (outlet) before sending to user
+   - Behavior: Default to always run
+   - Configuration:
+     - Implement a toggle env var
+     - Implement a list of available pipelines to control
+
+2. Pipes:
+
+   - Purpose: Perform actions prior to returning LLM messages to the user
+   - Behavior: Selective in the UI
+   - Special type: Manifold Pipe (consists of multiple pipes)
+
+3. Actions, Functions, Tools:
+   - Not clear figured out yet
+
+Valves:
+
+- Definition: Input variables set per pipeline
+- Implementation:
+  - Set as a subclass of the `Pipeline` class
+  - Initialized in the `__init__` method of the `Pipeline` class
+
+Pipeline Control:
+
+- Current method: Use environment variables
