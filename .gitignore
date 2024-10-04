@@ -1,4 +1,6 @@
 pipelines
+.cursorrules
+.cursorignore
 
 .DS_Store
 node_modules
