@@ -15,11 +15,10 @@ Types of Pipelines:
 
 1. Filters:
 
-   - Purpose: Perform actions on incoming user messages and outgoing assistant messages
-   - Process:
-     a. Incoming user message (inlet) is passed to the filter
-     b. Filter processes the message before LLM chat completion
-     c. Filter post-processes outgoing LLM message (outlet) before sending to user
+   - Purpose: Manipulate user input and/or LLM output to add, remove, format, or adjust the content of the body object
+   - Components:
+     a. Inlet Function: Pre-processes user input before sending to LLM
+     b. Outlet Function: Post-processes LLM output before sending to user
    - Behavior: Default to always run
    - Configuration:
      - Implement a toggle env var
@@ -27,20 +26,39 @@ Types of Pipelines:
 
 2. Pipes:
 
-   - Purpose: Perform actions prior to returning LLM messages to the user
-   - Behavior: Selective in the UI
-   - Special type: Manifold Pipe (consists of multiple pipes)
+   - Purpose: Create a "Model" with custom logic and processing
+   - Behavior: Shows up as a singular model in the OpenWebUI interface
+   - Main Component:
+     - Pipe Function: Encapsulates all primary logic for the Pipe
 
-3. Actions, Functions, Tools:
-   - Not clear figured out yet
+3. Manifolds:
+   - Purpose: Create a collection of Pipes, resulting in a set of "Models"
+   - Typically used for integrations with other providers
+   - Components:
+     a. Pipes Function: Initiates a dictionary to hold all Pipes created by the manifold
+     b. Pipe Function: Encapsulates primary logic for each Pipe
 
-Valves:
+Shared Function Components:
 
-- Definition: Input variables set per pipeline
-- Implementation:
-  - Set as a subclass of the `Pipeline` class
-  - Initialized in the `__init__` method of the `Pipeline` class
+1. Valves and UserValves:
+
+   - Purpose: Allow users to provide dynamic details (e.g., API key, configuration options)
+   - Implementation:
+     - Create fillable fields or boolean switches in the GUI menu
+   - Valves: Configurable by admins only
+   - UserValves: Configurable by any user
+
+2. Event Emitters:
+   - Purpose: Add additional information to the chat interface
+   - Types:
+     a. Status: Add statuses to a message during processing steps
+     b. Assistant: [Not specified in the provided information]
+   - Behavior: Can be activated at any stage during the function
+   - Capabilities:
+     - Append content to the chat
+     - Cannot strip information (unlike Filter Outlets)
 
 Pipeline Control:
 
 - Current method: Use environment variables
+- Ensure to include a toggle and available pipelines list for Filters
