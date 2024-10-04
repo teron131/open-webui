@@ -7,6 +7,9 @@
 - Mask API keys as sensitive in pipelines in admin setting
 - Bot Builder API
 - LLM translate with formatter and configs
+- Presidio PII filtering
+- Environment variables to toggle filters
+- LangChain pipeline template
 
 # TLDR:
 
