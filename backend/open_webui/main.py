@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import inspect
 import json
@@ -8,8 +9,6 @@ import shutil
 import sys
 import time
 import uuid
-import asyncio
-
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -48,8 +47,12 @@ from open_webui.apps.openai.main import (
 from open_webui.apps.openai.main import get_all_models as get_openai_models
 from open_webui.apps.rag.main import app as rag_app
 from open_webui.apps.rag.utils import get_rag_context, rag_template
-from open_webui.apps.socket.main import app as socket_app, periodic_usage_pool_cleanup
-from open_webui.apps.socket.main import get_event_call, get_event_emitter
+from open_webui.apps.socket.main import app as socket_app
+from open_webui.apps.socket.main import (
+    get_event_call,
+    get_event_emitter,
+    periodic_usage_pool_cleanup,
+)
 from open_webui.apps.webui.internal.db import Session
 from open_webui.apps.webui.main import app as webui_app
 from open_webui.apps.webui.main import (
@@ -87,13 +90,14 @@ from open_webui.config import (
     WEBUI_AUTH,
     WEBUI_NAME,
     AppConfig,
-    run_migrations,
     reset_config,
+    run_migrations,
 )
 from open_webui.constants import ERROR_MESSAGES, TASKS, WEBHOOK_MESSAGES
 from open_webui.env import (
     CHANGELOG,
     GLOBAL_LOG_LEVEL,
+    RESET_CONFIG_ON_START,
     SAFE_MODE,
     SRC_LOG_LEVELS,
     VERSION,
@@ -102,7 +106,6 @@ from open_webui.env import (
     WEBUI_SESSION_COOKIE_SAME_SITE,
     WEBUI_SESSION_COOKIE_SECURE,
     WEBUI_URL,
-    RESET_CONFIG_ON_START,
 )
 from open_webui.utils.misc import (
     add_or_update_system_message,
@@ -937,13 +940,16 @@ async def get_models(user=Depends(get_verified_user)):
     models = [model for model in models if "pipeline" not in model or model["pipeline"].get("type", None) != "filter"]
 
     if app.state.config.ENABLE_MODEL_FILTER:
+        print(app.state.config.MODEL_FILTER_LIST)
         if user.role in ["user", "admin"]:
+            print("All models: ", models)
             models = list(
                 filter(
-                    lambda model: model["id"] in app.state.config.MODEL_FILTER_LIST,
+                    lambda model: any(filter_item.endswith("*") and model["id"].startswith(filter_item[:-1]) or model["id"] == filter_item for filter_item in app.state.config.MODEL_FILTER_LIST),
                     models,
                 )
             )
+            print("Filtered models: ", models)
             return {"data": models}
 
     return {"data": models}
