@@ -10,6 +10,7 @@
 - Presidio PII filtering
 - Environment variables to toggle filters
 - LangChain pipeline template
+- Wild card for model filter
 
 # TLDR:
 
