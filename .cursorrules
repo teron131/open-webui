@@ -35,7 +35,7 @@ Types of Pipelines:
    - Purpose: Create a collection of Pipes, resulting in a set of "Models"
    - Typically used for integrations with other providers
    - Components:
-     a. Pipes Function: Initiates a dictionary to hold all Pipes created by the manifold
+     a. Pipelines Value: The `Pipeline` class contains a `self.pipelines` value which is a list of `{"id":, "name":}` to initiate the pipes.
      b. Pipe Function: Encapsulates primary logic for each Pipe
 
 Shared Function Components:
