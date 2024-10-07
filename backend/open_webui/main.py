@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import fnmatch
 import inspect
 import json
 import logging
@@ -932,6 +933,10 @@ async def get_all_models():
     return models
 
 
+def model_matches_filter(model_id, filter_list):
+    return any(fnmatch.fnmatch(model_id, filter_pattern) for filter_pattern in filter_list)
+
+
 @app.get("/api/models")
 async def get_models(user=Depends(get_verified_user)):
     models = await get_all_models()
@@ -943,12 +948,7 @@ async def get_models(user=Depends(get_verified_user)):
         print(app.state.config.MODEL_FILTER_LIST)
         if user.role in ["user", "admin"]:
             print("All models: ", models)
-            models = list(
-                filter(
-                    lambda model: any(filter_item.endswith("*") and model["id"].startswith(filter_item[:-1]) or model["id"] == filter_item for filter_item in app.state.config.MODEL_FILTER_LIST),
-                    models,
-                )
-            )
+            models = [model for model in models if model_matches_filter(model["id"], app.state.config.MODEL_FILTER_LIST)]
             print("Filtered models: ", models)
             return {"data": models}
 
@@ -966,7 +966,7 @@ async def generate_chat_completions(form_data: dict, user=Depends(get_verified_u
         )
 
     if app.state.config.ENABLE_MODEL_FILTER:
-        if user.role in ["user", "admin"] and model_id not in app.state.config.MODEL_FILTER_LIST:
+        if user.role in ["user", "admin"] and not model_matches_filter(model_id, app.state.config.MODEL_FILTER_LIST):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Model not found",
