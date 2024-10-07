@@ -15,7 +15,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from open_webui.apps.webui.models.models import Models
 from open_webui.config import (
-    AIOHTTP_CLIENT_TIMEOUT,
     CORS_ALLOW_ORIGIN,
     ENABLE_MODEL_FILTER,
     ENABLE_OLLAMA_API,
@@ -24,6 +23,9 @@ from open_webui.config import (
     UPLOAD_DIR,
     AppConfig,
 )
+from open_webui.env import AIOHTTP_CLIENT_TIMEOUT
+
+
 from open_webui.constants import ERROR_MESSAGES
 from open_webui.env import SRC_LOG_LEVELS
 from open_webui.utils.misc import calculate_sha256
@@ -113,7 +115,7 @@ async def update_ollama_api_url(form_data: UrlUpdateForm, user=Depends(get_admin
 
 
 async def fetch_url(url):
-    timeout = aiohttp.ClientTimeout(total=5)
+    timeout = aiohttp.ClientTimeout(total=3)
     try:
         async with aiohttp.ClientSession(timeout=timeout, trust_env=True) as session:
             async with session.get(url) as response:
@@ -751,6 +753,7 @@ async def generate_chat_completion(
 ):
     payload = {**form_data.model_dump(exclude_none=True)}
     log.debug(f"{payload = }")
+
     if "metadata" in payload:
         del payload["metadata"]
 
