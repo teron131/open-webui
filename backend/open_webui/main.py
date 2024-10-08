@@ -15,45 +15,56 @@ from typing import Optional
 
 import aiohttp
 import requests
-
+from authlib.integrations.starlette_client import OAuth
+from authlib.oidc.core import UserInfo
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from open_webui.apps.audio.main import app as audio_app
+from open_webui.apps.images.main import app as images_app
+from open_webui.apps.ollama.main import GenerateChatCompletionForm
+from open_webui.apps.ollama.main import app as ollama_app
 from open_webui.apps.ollama.main import (
-    GenerateChatCompletionForm,
     generate_chat_completion as generate_ollama_chat_completion,
 )
 from open_webui.apps.ollama.main import (
     generate_openai_chat_completion as generate_ollama_openai_chat_completion,
-    GenerateChatCompletionForm,
 )
+from open_webui.apps.ollama.main import get_all_models as get_ollama_models
+from open_webui.apps.openai.main import app as openai_app
 from open_webui.apps.openai.main import (
-    app as openai_app,
     generate_chat_completion as generate_openai_chat_completion,
 )
 from open_webui.apps.openai.main import get_all_models as get_openai_models
-from open_webui.apps.rag.main import app as rag_app
-from open_webui.apps.rag.utils import get_rag_context, rag_template
-from open_webui.apps.socket.main import app as socket_app, periodic_usage_pool_cleanup
-from open_webui.apps.socket.main import get_event_call, get_event_emitter
+from open_webui.apps.retrieval.main import app as retrieval_app
+from open_webui.apps.retrieval.utils import get_rag_context, rag_template
+from open_webui.apps.socket.main import app as socket_app
+from open_webui.apps.socket.main import (
+    get_event_call,
+    get_event_emitter,
+    periodic_usage_pool_cleanup,
+)
 from open_webui.apps.webui.internal.db import Session
 from open_webui.apps.webui.main import app as webui_app
 from open_webui.apps.webui.main import (
-    app as webui_app,
     generate_function_chat_completion,
     get_pipe_models,
 )
-from open_webui.apps.webui.internal.db import Session
-
 from open_webui.apps.webui.models.auths import Auths
 from open_webui.apps.webui.models.functions import Functions
 from open_webui.apps.webui.models.models import Models
 from open_webui.apps.webui.models.users import UserModel, Users
-
 from open_webui.apps.webui.utils import load_function_module_by_id
-
-
-from authlib.integrations.starlette_client import OAuth
-from authlib.oidc.core import UserInfo
-
-
 from open_webui.config import (
     CACHE_DIR,
     CORS_ALLOW_ORIGIN,
@@ -405,25 +416,21 @@ async def chat_completion_tools_handler(body: dict, user: UserModel, extra_param
 
             tool_function_params = result.get("parameters", {})
 
-        try:
-            tool_output = await tools[tool_function_name]["callable"](
-                **tool_function_params
-            )
-        except Exception as e:
-            tool_output = str(e)
+            try:
+                tool_output = await tools[tool_function_name]["callable"](**tool_function_params)
+            except Exception as e:
+                tool_output = str(e)
 
-        if tools[tool_function_name]["citation"]:
-            citations.append(
-                {
-                    "source": {
-                        "name": f"TOOL:{tools[tool_function_name]['toolkit_id']}/{tool_function_name}"
-                    },
-                    "document": [tool_output],
-                    "metadata": [{"source": tool_function_name}],
-                }
-            )
-        if tools[tool_function_name]["file_handler"]:
-            skip_files = True
+            if tools[tool_function_name]["citation"]:
+                citations.append(
+                    {
+                        "source": {"name": f"TOOL:{tools[tool_function_name]['toolkit_id']}/{tool_function_name}"},
+                        "document": [tool_output],
+                        "metadata": [{"source": tool_function_name}],
+                    }
+                )
+            if tools[tool_function_name]["file_handler"]:
+                skip_files = True
 
             if isinstance(tool_output, str):
                 contexts.append(tool_output)
@@ -561,28 +568,19 @@ class ChatCompletionMiddleware(BaseHTTPMiddleware):
 
             if prompt is None:
                 raise Exception("No user message found")
-            if (
-                rag_app.state.config.RELEVANCE_THRESHOLD == 0
-                and context_string.strip() == ""
-            ):
-                log.debug(
-                    f"With a 0 relevancy threshold for RAG, the context cannot be empty"
-                )
+            if retrieval_app.state.config.RELEVANCE_THRESHOLD == 0 and context_string.strip() == "":
+                log.debug(f"With a 0 relevancy threshold for RAG, the context cannot be empty")
 
             # Workaround for Ollama 2.0+ system prompt issue
             # TODO: replace with add_or_update_system_message
             if model["owned_by"] == "ollama":
                 body["messages"] = prepend_to_first_user_message_content(
-                    rag_template(
-                        rag_app.state.config.RAG_TEMPLATE, context_string, prompt
-                    ),
+                    rag_template(retrieval_app.state.config.RAG_TEMPLATE, context_string, prompt),
                     body["messages"],
                 )
             else:
                 body["messages"] = add_or_update_system_message(
-                    rag_template(
-                        rag_app.state.config.RAG_TEMPLATE, context_string, prompt
-                    ),
+                    rag_template(retrieval_app.state.config.RAG_TEMPLATE, context_string, prompt),
                     body["messages"],
                 )
 
@@ -2049,9 +2047,7 @@ async def get_app_changelog():
 async def get_app_latest_release_version():
     try:
         async with aiohttp.ClientSession(trust_env=True) as session:
-            async with session.get(
-                "https://api.github.com/repos/open-webui/open-webui/releases/latest"
-            ) as response:
+            async with session.get("https://api.github.com/repos/open-webui/open-webui/releases/latest") as response:
                 response.raise_for_status()
                 data = await response.json()
                 latest_version = data["tag_name"]
