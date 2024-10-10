@@ -11,6 +11,7 @@
 - Environment variables to toggle filters
 - LangChain pipeline template
 - Wild card for model filter (with fix of using models)
+- Universal LangChain pipeline with tools calling by agent
 
 # TLDR:
 
