@@ -12,6 +12,10 @@
 - LangChain pipeline template
 - Wild card for model filter (with fix of using models)
 - Universal LangChain pipeline with tools calling by agent
+- Web loader
+- YouTube loader
+- Text-to-SQL simple
+- Text-to-SQL ReAct
 
 # TLDR:
 
