@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Literal, Optional, overload
 
 import aiohttp
-from aiocache import cached
 import requests
 from aiocache import cached
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -20,7 +19,6 @@ from open_webui.config import (
     OPENAI_API_BASE_URLS,
     OPENAI_API_CONFIGS,
     OPENAI_API_KEYS,
-    OPENAI_API_CONFIGS,
     AppConfig,
 )
 from open_webui.constants import ERROR_MESSAGES
@@ -434,13 +432,17 @@ async def verify_connection(form_data: ConnectionVerificationForm, user=Depends(
                     error_detail = f"HTTP Error: {r.status}"
                     res = await r.json()
                     if "error" in res:
-                        error_detail = f"External: {res['error']}"
-                except Exception:
-                    error_detail = f"External: {e}"
+                        error_detail = f"External Error: {res['error']}"
+                    raise Exception(error_detail)
 
-            raise HTTPException(
-                status_code=500, detail="Open WebUI: Server Connection Error"
-            )
+                response_data = await r.json()
+                return response_data
+
+        except aiohttp.ClientError as e:
+            # ClientError covers all aiohttp requests issues
+            log.exception(f"Client error: {str(e)}")
+            # Handle aiohttp-specific connection issues, timeout etc.
+            raise HTTPException(status_code=500, detail="Open WebUI: Server Connection Error")
         except Exception as e:
             log.exception(f"Unexpected error: {e}")
             # Generic error handler in case parsing JSON or other steps fail

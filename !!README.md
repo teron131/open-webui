@@ -1,35 +1,14 @@
-# Specialized changes:
-
-- Update env example
-- Use Google OAuth only
-- Connect to pipelines by default
-- Admin also utilizes model filter
-- Mask API keys as sensitive in pipelines in admin setting
-- Bot Builder API
-- LLM translate with formatter and configs
-- Presidio PII filtering
-- Environment variables to toggle filters
-- LangChain pipeline template
-- Wild card for model filter (with fix of using models)
-- Universal LangChain pipeline with tools calling by agent
-- Web loader
-- YouTube loader
-- Text-to-SQL simple
-- Text-to-SQL ReAct
-
 # TLDR:
 
 For one terminal:
 
 ```bash
-conda activate open-webui-env && # if use conda
 cd backend && bash start.sh
 ```
 
 For another terminal:
 
 ```bash
-conda activate open-webui-env && # if use conda
 cd pipelines && bash start.sh
 ```
 
@@ -45,13 +24,11 @@ You can do a script but keep it simple here.
 
 5. Add in OpenAI API:
 
-   - API Base URL:http://localhost:9999
+   - API Base URL:http://localhost:9099
    - API Key: 0p3n-w3bu!
    - Save
 
 6. Pipelines
-
-Port `9099` is changed to `9999` because somehow `9099` is always in use.
 
 # From docs:
 
@@ -113,6 +90,6 @@ Connect to Open WebUI:
 
 - When you're on this page, you can press the + button to add another connection.
 
-- Set the API URL to http://localhost:9999 and the API key to 0p3n-w3bu!.
+- Set the API URL to http://localhost:9099 and the API key to 0p3n-w3bu!.
 
 - Once you've added your pipelines connection and verified it, you will see an icon appear within the API Base URL field for the added connection. When hovered over, the icon itself will be labeled Pipelines. Your pipelines should now be active.

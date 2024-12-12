@@ -9,8 +9,6 @@ from typing import Optional, Union
 from urllib.parse import urlparse
 
 import aiohttp
-from aiocache import cached
-
 import requests
 from aiocache import cached
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
@@ -22,7 +20,6 @@ from open_webui.config import (
     ENABLE_OLLAMA_API,
     OLLAMA_API_CONFIGS,
     OLLAMA_BASE_URLS,
-    OLLAMA_API_CONFIGS,
     UPLOAD_DIR,
     AppConfig,
 )
@@ -42,7 +39,6 @@ from open_webui.utils.payload import (
     apply_model_system_prompt_to_body,
 )
 from open_webui.utils.utils import get_admin_user, get_verified_user
-from open_webui.utils.access_control import has_access
 from pydantic import BaseModel, ConfigDict
 from starlette.background import BackgroundTask
 
