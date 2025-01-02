@@ -1,4 +1,5 @@
-pipelines
+pipelines/
+langchain-playground/
 
 .DS_Store
 node_modules
