@@ -4,3 +4,4 @@ pip install -U ./langchain-playground
 npm install
 npm run build
 bash start.sh
+tmux kill-server
